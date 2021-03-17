@@ -1,0 +1,44 @@
+name: Run CI Suite
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+# env:
+#   COMPOSE_FILE: docker-compose-ci.yml
+
+jobs:
+  rubocop:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f
+    - name: Set up Ruby
+      uses: ruby/setup-ruby@b818bea8cf015031920150a891dbdd4105cc7e47
+      with:
+        ruby-version: '2.5'
+        bundler-cache: true # runs 'bundle install' and caches installed gems automatically
+    - name: rubocop
+      run: bundle exec rubocop
+
+  rspec:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f
+    - name: Login to DockerHub
+      uses: docker/login-action@f3364599c6aa293cdc2b8391b1b56d0c30e45c8a
+      with:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_PASSWORD }}
+    - name: Start and Initialize Docker services
+      run: |
+        docker-compose run web bundle install
+        docker-compose run sidekiq bundle install
+        docker-compose up --detach
+        docker-compose run web bundle exec rails db:setup
+        docker-compose ps
+    - name: run rspec
+      run: docker-compose run web bundle exec rspec spec
+    - name: Stop docker services
+      run: docker-compose down

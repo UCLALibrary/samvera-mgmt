@@ -1,47 +1,15 @@
-language: ruby
-sudo: false
-cache:
-  bundler: true
-  directories:
-    - tmp/solr_downloads
-    - tmp/fedora_downloads
-dist: trusty
-addons:
-  apt:
-    packages:
-      - libclamav-dev
-      - clamav
-      - chromium-browser
-      - chromium-chromedriver
-jdk:
-  - oraclejdk8
-rvm:
-  - 2.5
+---
+sudo: true
+language: bash
 env:
   global:
-    - COMPOSE_FILE=docker-compose-ci.yml
-    - DATABASE_USERNAME=travis
-    - IIIF_SERVER_URL='http://test.url/'
     - JENKINS_HOST=jenkins-devsupport.library.ucla.edu
     - JENKINS_USER="${TRAVIS_JENKINS_USER}"
     - JENKINS_API_CALIFORNICA="${TRAVIS_JENKINS_API_CALIFORNICA}"
-    - SOLR_URL=http://solr:8983/solr/californica
-    - SOLR_TEST_URL=http://solr_test:8983/solr/californica
-before_install:
-  - gem update --system
-  - gem install bundler:1.17.3
-  - echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USER" --password-stdin
-before_script:
-  - docker-compose --version
-  - docker-compose up -d db
-  - docker-compose run web bundle exec rails db:setup
-  - ln --symbolic /usr/lib/chromium-browser/chromedriver "${HOME}/bin/chromedriver"
-  - google-chrome-stable --headless --disable-gpu --remote-debugging-port=9222 http://localhost &
 script:
-  - docker-compose run web bundle exec rubocop
-  - docker-compose run web bundle exec rspec
-services:
-  - docker
+  - echo "No more tests in Travis! The only function remaining is to trigger Jenkins deploys."
+notifications:
+  email: false
 after_success:
   - |
     # A canary to allow verification that our firewall allows Travis in
