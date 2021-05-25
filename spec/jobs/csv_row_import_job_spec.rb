@@ -4,6 +4,11 @@ require 'rails_helper'
 RSpec.describe CsvRowImportJob, :clean do
   let(:csv_import) { FactoryBot.create(:csv_import) }
 
+  before do
+    test_strategy = Flipflop::FeatureSet.current.test!
+    test_strategy.switch!(:child_works, false)
+  end
+
   context 'happy path' do
     let(:metadata) do
       {

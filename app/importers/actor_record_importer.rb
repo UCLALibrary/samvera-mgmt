@@ -54,6 +54,11 @@ class ActorRecordImporter < Darlingtonia::HyraxRecordImporter
       end
       @failure_count += 1
     end
+
+  rescue ActiveFedora::IllegalOperation, ActiveFedora::ObjectNotFoundError, Ldp::BadRequest, Ldp::Gone, Ldp::HttpError
+    fcrepo_id = Californica::IdGenerator.id_from_ark(record.ark)
+    Californica::Deleter.new(id: fcrepo_id).delete
+    update_record
   end
 
   # Create an object using the Hyrax actor stack
@@ -106,8 +111,8 @@ class ActorRecordImporter < Darlingtonia::HyraxRecordImporter
         raise e
       end
     end
-  rescue ActiveFedora::IllegalOperation => e
-    raise e unless e.message.start_with?('Attempting to recreate existing ldp_source')
+
+  rescue ActiveFedora::IllegalOperation, ActiveFedora::ObjectNotFoundError, Ldp::BadRequest, Ldp::Gone, Ldp::HttpError => e
     retries ||= 0
     fcrepo_id = Californica::IdGenerator.id_from_ark(record.ark)
     Californica::Deleter.new(id: fcrepo_id).delete

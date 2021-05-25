@@ -32,7 +32,8 @@ class CalifornicaImporter
     # Running darlingtonia w/ our RecordImporter just creates CsvRow objects
     Darlingtonia::Importer.new(parser: parser, record_importer: record_importer, info_stream: @info_stream, error_stream: @error_stream).import
 
-    @csv_import.csv_rows.where(status: ['queued', 'in progress']).each do |csv_row|
+    @csv_import.csv_rows.where(status: ['in progress', 'deleting child works', 'error']).update_all(status: 'queued')
+    @csv_import.csv_rows.where(status: 'queued').each do |csv_row|
       CsvRowImportJob.perform_now(row_id: csv_row.id)
     end
 

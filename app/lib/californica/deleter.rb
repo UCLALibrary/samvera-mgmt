@@ -27,7 +27,7 @@ module Californica
       end
       delete if record.is_a?(of_type)
 
-    rescue ActiveFedora::ObjectNotFoundError
+    rescue ActiveFedora::IllegalOperation, ActiveFedora::ObjectNotFoundError, Ldp::BadRequest, Ldp::Gone, Ldp::HttpError
       delete_from_fcrepo
     end
 
@@ -45,7 +45,7 @@ module Californica
         record&.destroy&.eradicate
         Hyrax.config.callback.run(:after_destroy, record.id, User.batch_user)
         logger.info("Deleted #{record_name || id}}")
-      rescue ActiveFedora::ObjectNotFoundError
+      rescue ActiveFedora::IllegalOperation, ActiveFedora::ObjectNotFoundError, Ldp::BadRequest, Ldp::Gone, Ldp::HttpError
         delete_from_fcrepo
       end
 
