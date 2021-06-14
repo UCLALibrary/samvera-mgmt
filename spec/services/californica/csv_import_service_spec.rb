@@ -15,7 +15,6 @@ RSpec.describe Californica::CsvImportService do
       Object Type,Title,Item ARK,Parent ARK,Rights.copyrightStatus,File Name,Import Status
       Work,Apple,ark:/abc/123456,ark:/abc/7890123,copyrighted,clusc_1_1_00010432a.tif,queued
       Work,Banana,ark:/abc/654321,ark:/abc/7890123,copyrighted,clusc_1_1_00010432a.tif,error
-      Work,Mango,ark:/abc/918274,ark:/abc/7890123,copyrighted,clusc_1_1_00010432a.tif,complete
     HEREDOC
   end
 

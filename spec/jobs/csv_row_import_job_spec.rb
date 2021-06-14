@@ -16,6 +16,11 @@ RSpec.describe CsvRowImportJob, :clean do
     end
     let(:csv_row) { FactoryBot.create(:csv_row, status: nil, csv_import_id: csv_import.id, metadata: metadata) }
 
+    before do
+      test_strategy = Flipflop::FeatureSet.current.test!
+      test_strategy.switch!(:child_works, false)
+    end
+
     it 'can set a status' do
       described_class.perform_now(row_id: csv_row.id)
       csv_row.reload
