@@ -38,18 +38,29 @@ module Californica
     private
 
       def destroy_and_eradicate
-        record_name = "#{record.class} #{record.ark}"
         record&.destroy&.eradicate
         Hyrax.config.callback.run(:after_destroy, record.id, User.batch_user)
-        logger.info("Deleted #{record_name || id}}")
+        log("Deleted record")
+      rescue Ldp::HttpError => e
+        log("#{e.class}: #{e.message}")
+        retries ||= 0
+        retry if (retries += 1) <= 3
       end
 
       def delete_from_fcrepo
         ActiveFedora.fedora.connection.delete(ActiveFedora::Base.id_to_uri(id))
-        Rollbar.info("Forced delete of #{id} from Fedora")
-        logger.info("Forced delete of #{id} from Fedora")
+        log("Forced delete of record from Fedora")
       rescue Ldp::NotFound
         nil # Everything's good, we just wanted to make sure there wasn't a record in fedora not indexed to solr
+      end
+
+      def log(message, status: :info)
+        Rollbar.send((Rollbar.respond_to?(status) ? status : :info), message, id: id)
+        if logger.respond_to?(status)
+          logger.send(status, "#{message} (#{record_name})")
+        elsif logger.respond_to?(:<<)
+          logger << "#{status}: #{message} (#{record_name})"
+        end
       end
 
       def record
@@ -57,6 +68,10 @@ module Californica
 
       rescue ActiveFedora::ObjectNotFoundError
         delete_from_fcrepo
+      end
+
+      def record_name
+        @record ? "#{record.class} #{record.ark}" : id
       end
   end
 end
